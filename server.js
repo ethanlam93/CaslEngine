@@ -1,6 +1,8 @@
 // Requiring necessary npm packages
 const express = require("express");
 const session = require("express-session");
+const compression = require('compression')
+
 // Requiring passport as we've configured it
 const passport = require("./config/passport");
 
@@ -10,7 +12,17 @@ const db = require("./models");
 
 // Creating express app and configuring middleware needed for authentication
 const app = express();
-app.use(express.urlencoded({ extended: true }));
+app.use(compression({ filter: shouldCompress }))
+ 
+function shouldCompress (req, res) {
+  if (req.headers['x-no-compression']) {
+    // don't compress responses with this request header
+    return false
+  }
+ 
+  // fallback to standard filter function
+  return compression.filter(req, res)
+}
 app.use(express.json());
 app.use(express.static("public"));
 // We need to use sessions to keep track of our user's login status
